@@ -1,53 +1,45 @@
 module.exports = {
   config: {
     name: "ketnot",
-    version: "1.0",
+    version: "2.0",
     hasPermssion: 0,
     credits: "M",
-    description: "Gửi tin nhắn ẩn danh đến UID",
+    description: "Gửi tin nhắn ẩn danh đến UID bằng 1 dòng",
     commandCategory: "Tiện ích",
-    usages: "",
+    usages: "!ketnot [uid] | [nội dung]",
     cooldowns: 5,
   },
 
-  run: async ({ api, event }) => {
-    return api.sendMessage("📩 Nhập UID người nhận:", event.threadID, (err, info) => {
-      global.client.handleReply.push({
-        name: this.config.name,
-        messageID: info.messageID,
-        author: event.senderID,
-        type: "askUID"
-      });
-    });
-  },
+  run: async ({ api, event, args }) => {
+    const input = args.join(" ").split("|");
 
-  handleReply: async ({ api, event, handleReply }) => {
-    if (event.senderID != handleReply.author) return;
-
-    switch (handleReply.type) {
-      case "askUID": {
-        return api.sendMessage("✉️ Nhập nội dung muốn gửi:", event.threadID, (err, info) => {
-          global.client.handleReply.push({
-            name: module.exports.config.name,
-            messageID: info.messageID,
-            author: event.senderID,
-            type: "askMessage",
-            uid: event.body
-          });
-        });
-      }
-
-      case "askMessage": {
-        try {
-          await api.sendMessage(
-            `📨 Bạn đã nhận được 1 tin nhắn ẩn danh:\n\n"${event.body}"`,
-            handleReply.uid
-          );
-          return api.sendMessage("✅ Tin nhắn đã được gửi ẩn danh!", event.threadID);
-        } catch (e) {
-          return api.sendMessage("⚠️ Gửi thất bại. UID sai hoặc không nhận được tin nhắn.", event.threadID);
-        }
-      }
+    if (input.length < 2) {
+      return api.sendMessage(
+        "❌ Sai cú pháp!\nDùng: !ketnot [UID] | [nội dung muốn gửi]",
+        event.threadID
+      );
     }
-  }
+
+    const uid = input[0].trim();
+    const message = input.slice(1).join("|").trim();
+
+    if (!uid || !message)
+      return api.sendMessage(
+        "⚠️ Vui lòng nhập đầy đủ UID và nội dung.",
+        event.threadID
+      );
+
+    try {
+      await api.sendMessage(
+        `📨 Bạn đã nhận được 1 tin nhắn ẩn danh:\n\n${message}`,
+        uid
+      );
+      api.sendMessage("✅ Tin nhắn đã được gửi thành công!", event.threadID);
+    } catch (e) {
+      api.sendMessage(
+        "❌ Không gửi được. UID có thể sai hoặc người nhận đã chặn bot.",
+        event.threadID
+      );
+    }
+  },
 };
