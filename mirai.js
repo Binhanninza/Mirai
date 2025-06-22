@@ -168,3 +168,12 @@ function onBot({ models }) {
       }
 })();
 process.on("unhandledRejection", (err, p) => {console.log(p)});
+const express = require("express");
+const app = express();
+
+app.get("/", (req, res) => res.send("✅ Bot đang chạy - by M"));
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`📡 Fake server đang lắng nghe tại PORT ${PORT}`);
+});
